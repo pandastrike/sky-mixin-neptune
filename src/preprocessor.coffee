@@ -1,7 +1,7 @@
 # Panda Sky Mixin: Neptune
 # This mixin allocates the requested Neptune cluster into your CloudFormation stack.
 import {cat, isObject} from "fairmont"
-import {offset} from "./utils"
+import {offset, pickZone, pickWindow, keyLookup} from "./utils"
 
 process = (SDK, config) ->
 
@@ -19,15 +19,40 @@ process = (SDK, config) ->
   {cluster, tags} = c
   if !cluster.name
     c.cluster.name = config.environmentVariables.fullName
+
+  if !cluster.type
+    c.cluster.type = "db.r4.large"
+
+  if !cluster.replicaCount?
+    cluster.replicaCount = 0
+
+  if !cluster.backupTTL
+    cluster.backupTTL = 1
+
   if !cluster.backupWindow
     cluster.backupWindow = "06:00-07:00" # 11pm - 12am PST
+
   if !cluster.maintenanceWindow
     cluster.maintenanceWindow = "Wed:07:00-Wed:08:00"  # 12am - 1am PST
-    cluster.replicaMaintenanceWindow = offset 1, cluster.maintenanceWindow
+  cluster.maintenanceWindow2 = offset 1, cluster.maintenanceWindow
+
   if !cluster.allowMajorUpgrades?
     cluster.allowMajorUpgrades = false
 
+  if !cluster.allowMinorUpgrades?
+    cluster.allowMinorUpgrades = true
 
-  {tags, cluster}
+  if cluster.kmsKey
+    cluster.kmsKey = await keyLookup SDK, cluster.kmsKey
+
+  # Create the read replica configuration based on the requested number of replicas.
+  replicas = []
+  for i in [0...cluster.replicaCount]
+    replicas.push
+      availabilityZone: pickZone i
+      maintenanceWindow: pickWindow i, cluster
+
+
+  {tags, cluster, replicas}
 
 export default process

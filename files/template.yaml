@@ -24,12 +24,16 @@ NeptuneCluster:
     DBSubnetGroupName: {{cluster.name}}
     PreferredBackupWindow: {{cluster.backupWindow}}
     PreferredMaintenanceWindow: {{cluster.maintenanceWindow}}
-    {{#if cluster.backupTTL}}
     BackupRetentionPeriod: {{cluster.backupTTL}}
-    {{/if}}
     Port: 8182
     IamAuthEnabled: false
+    {{#if cluster.kmsKey}}
+    KmsKeyId: {{cluster.kmsKey}}
     StorageEncrypted: true
+    {{/if}}
+    {{#unless cluster.kmsKey}}
+    StorageEncrypted: false
+    {{/unless}}
     Tags:
       {{#each tags}}
       - Key: {{Key}}
@@ -57,7 +61,8 @@ NeptuneInstance:
         Value: {{Value}}
       {{/each}}
 
-NeptuneInstanceReplica:
+{{#each replicas}}
+NeptuneInstanceReplica{{@index}}:
   DependsOn:
     - NeptuneCluster
     - NeptuneClusterSubnet
@@ -67,14 +72,15 @@ NeptuneInstanceReplica:
     AllowMajorVersionUpgrade: false
     AutoMinorVersionUpgrade: true
     AvailabilityZone:
-      "Fn::Select": [1, "Fn::Split": [",", {"Ref": AvailabilityZones}]]
-    DBClusterIdentifier: {{cluster.name}}
-    DBInstanceClass: {{cluster.type}}
-    DBInstanceIdentifier: {{cluster.name}}-replica
-    DBSubnetGroupName: {{cluster.name}}
-    PreferredMaintenanceWindow: {{cluster.replicaMaintenanceWindow}}
+      "Fn::Select": {{availabilityZone}}
+    DBClusterIdentifier: {{@root.cluster.name}}
+    DBInstanceClass: {{@root.cluster.type}}
+    DBInstanceIdentifier: {{@root.cluster.name}}-replica-{{@index}}
+    DBSubnetGroupName: {{@root.cluster.name}}
+    PreferredMaintenanceWindow: {{maintenanceWindow}}
     Tags:
-      {{#each tags}}
+      {{#each @root.tags}}
       - Key: {{Key}}
         Value: {{Value}}
       {{/each}}
+{{/each}}
