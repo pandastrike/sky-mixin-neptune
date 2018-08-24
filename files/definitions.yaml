@@ -1,0 +1,51 @@
+cluster:
+  description: >
+    This describes a Neptune cluster to be deployed into your environment.
+  type: object
+  additionalProperties: false
+  required: [type]
+  properties:
+    name:
+      description: >
+        Optional specification of the cluster name and its associated resources.  Defaults to the project name + environment
+      type: string
+      minLength: 1
+
+    type:
+      description: >
+        The EC2 instance class for use within the Neptune cluster.
+      type: string
+      enum:
+        - "db.r4.large"
+        - "db.r4.xlarge"
+        - "db.r4.2xlarge"
+        - "db.r4.4xlarge"
+        - "db.r4.8xlarge"
+
+    backupTTL:
+      description: >
+        Optional specification of how long to hold onto database snapshots, given in days.  Defaults to 1 day.
+      type: integer
+      minimum: 1
+
+    backupWindow:
+      description: >
+        Optional specification of the window of time where a database backup can be made.  Given in UTC in the format hh:mm-hh:mm.  Defaults to 06:00-07:00, which is 11pm - 12am PST.  Replica is staggered one hour afterward.
+      type: string
+      minLength: 1
+
+    maintenanceWindow:
+      description: >
+        Optional specification of the window of time where system maintenance may occur, including version upgrades.  Given in UTC in the format ddd:hh:mm-ddd:hh:mm.  Defaults to "Wed:07:00-Wed:08:00", which is 12am - 1am PST Wednesday mornings.  Replica is staggered one hour afterward.
+      type: string
+      minLength: 1
+
+    allowMajorUpgrades:
+      description: >
+        Optional configuraiton to allow major Neptune engine upgrades on your instances. Defaults to false.
+      type: boolean
+
+    allowMinorUpgrades:
+      description: >
+        Optional configuraiton to allow minor Neptune engine upgrades on your instances. Defaults to true.
+      type: boolean

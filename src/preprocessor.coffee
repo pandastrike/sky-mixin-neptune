@@ -1,0 +1,33 @@
+# Panda Sky Mixin: Neptune
+# This mixin allocates the requested Neptune cluster into your CloudFormation stack.
+import {cat, isObject} from "fairmont"
+import {offset} from "./utils"
+
+process = (SDK, config) ->
+
+  # Start by extracting out the Neptune Mixin configuration:
+  {env, tags=[]} = config
+  c = config.aws.environments[env].mixins.neptune
+  c = if isObject c then c else {}
+  c.tags = cat (c.tags || []), tags
+
+  # This mixin only works with a VPC
+  if !config.aws.vpc
+    throw new Error "The Neptune mixin can only be used in environments featuring a VPC."
+
+  # Expand the cluster configuration with defaults.
+  {cluster, tags} = c
+  if !cluster.name
+    c.cluster.name = config.environmentVariables.fullName
+  if !cluster.backupWindow
+    cluster.backupWindow = "06:00-07:00" # 11pm - 12am PST
+  if !cluster.maintenanceWindow
+    cluster.maintenanceWindow = "Wed:07:00-Wed:08:00"  # 12am - 1am PST
+    cluster.replicaMaintenanceWindow = offset 1, cluster.maintenanceWindow
+  if !cluster.allowMajorUpgrades?
+    cluster.allowMajorUpgrades = false
+
+
+  {tags, cluster}
+
+export default process
