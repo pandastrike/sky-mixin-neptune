@@ -3,7 +3,8 @@ import {even} from "fairmont"
 import Sundog from "sundog"
 
 keyLookup = (SDK, name) ->
-  {AWS:{KMS:{get}}} = await Sundog SDK
+  {AWS:{KMS}} = await Sundog SDK
+  {get} = KMS()
   try
     {Arn} = await get "alias/#{name}"
     Arn
