@@ -1,6 +1,6 @@
 {
   "name": "sky-mixin-neptune",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Panda Sky Mixin for the AWS Neptune Graph Database with VPC Integration",
   "main": "build/npm/src/index.js",
   "files": [
@@ -51,6 +51,6 @@
     "js-yaml": "^3.10.0",
     "panda-serialize": "^0.2.0",
     "panda-sky-mixin": "0.0.4",
-    "sundog": "^1.0.8"
+    "sundog": "1.0.10"
   }
 }
